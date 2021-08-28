@@ -154,6 +154,8 @@ fn fetchRaw(allocator: *std.mem.Allocator, token: string, method: zfetch.Method,
     defer headers.deinit();
     try headers.appendValue("Accept", "application/vnd.github.v3+json");
     try headers.appendValue("Authorization", try std.mem.join(allocator, " ", &.{ "token", token }));
+    try headers.appendValue("Content-Type", "application/octet-stream");
+    try headers.appendValue("Content-Length", try std.fmt.allocPrint(allocator, "{d}", .{body.len}));
 
     var req = try zfetch.Request.init(allocator, url, null);
     try req.do(method, headers, body);

@@ -14,5 +14,5 @@ x86_64-windows
 for item in $targets
 do
     echo "$item"
-    zig build -Dtarget=$item
+    zig build -Dtarget="$item" -Dfull-name
 done

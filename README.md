@@ -10,6 +10,18 @@ $ ghr [option] TAG PATH
 ```
 
 ## Options
+```sh
+-t TOKEN        # Set Github API Token
+-u USERNAME     # Set Github username
+-r REPO         # Set repository name
+-c COMMIT       # Set target commitish, branch or commit SHA
+-n TITLE        # Set release title
+-b BODY         # Set text describing the contents of the release
+-draft          # Release as draft (Unpublish)
+-prerelease     # Create prerelease
+TAG
+PATH
+```
 
 ## Installation
 

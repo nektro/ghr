@@ -24,6 +24,16 @@ PATH
 ```
 
 ## Installation
+With [Zigmod](https://github.com/nektro/zigmod)
+```sh
+$ zigmod aq install 1/nektro/ghr
+```
+
+From Source
+```
+zigmod fetch
+zig build
+```
 
 ## License
 MIT

@@ -6,7 +6,11 @@ pub fn build(b: *std.build.Builder) void {
 
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("ghr", "src/main.zig");
+    const use_full_name = b.option(bool, "full-name", "") orelse false;
+    const with_os_arch = b.fmt("-{s}-{s}", .{ @tagName(target.os_tag orelse std.builtin.os.tag), @tagName(target.cpu_arch orelse std.builtin.cpu.arch) });
+    const exe_name = b.fmt("{s}{s}", .{ "ghr", if (use_full_name) with_os_arch else "" });
+
+    const exe = b.addExecutable(exe_name, "src/main.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
     deps.addAllTo(exe);

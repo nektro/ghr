@@ -90,7 +90,7 @@ pub fn main() !void {
 
     //
     const url = try std.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
-    var req = try fetchJson(alloc, .POST, url, .{
+    var req = try fetchJson(alloc, config.token, .POST, url, .{
         .tag_name = config.tag,
         .target_commitish = config.commit,
         .name = config.title,
@@ -121,7 +121,7 @@ pub fn main() !void {
         const contents = try file.reader().readAllAlloc(alloc, std.math.maxInt(usize));
         defer alloc.free(contents);
 
-        var upreq = try fetchRaw(alloc, .POST, upload_url, contents);
+        var upreq = try fetchRaw(alloc, config.token, .POST, upload_url, contents);
         defer upreq.deinit();
         std.testing.expectEqual(@as(u16, 201), upreq.status.code) catch {};
     }
@@ -136,10 +136,11 @@ pub fn rev_HEAD(alloc: *std.mem.Allocator) !string {
     return r;
 }
 
-fn fetchJson(allocator: *std.mem.Allocator, method: zfetch.Method, url: string, body: anytype) !*zfetch.Request {
+fn fetchJson(allocator: *std.mem.Allocator, token: string, method: zfetch.Method, url: string, body: anytype) !*zfetch.Request {
     var headers = zfetch.Headers.init(allocator);
     defer headers.deinit();
     try headers.appendValue("Accept", "application/vnd.github.v3+json");
+    try headers.appendValue("Authorization", try std.mem.join(allocator, " ", &.{ "token", token }));
     try headers.appendValue("Content-Type", "application/json");
 
     var req = try zfetch.Request.init(allocator, url, null);
@@ -147,10 +148,11 @@ fn fetchJson(allocator: *std.mem.Allocator, method: zfetch.Method, url: string, 
     return req;
 }
 
-fn fetchRaw(allocator: *std.mem.Allocator, method: zfetch.Method, url: string, body: []const u8) !*zfetch.Request {
+fn fetchRaw(allocator: *std.mem.Allocator, token: string, method: zfetch.Method, url: string, body: []const u8) !*zfetch.Request {
     var headers = zfetch.Headers.init(allocator);
     defer headers.deinit();
     try headers.appendValue("Accept", "application/vnd.github.v3+json");
+    try headers.appendValue("Authorization", try std.mem.join(allocator, " ", &.{ "token", token }));
 
     var req = try zfetch.Request.init(allocator, url, null);
     try req.do(method, headers, body);

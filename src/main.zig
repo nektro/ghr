@@ -90,7 +90,6 @@ pub fn main() !void {
 
     //
     const url = try std.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
-    std.log.debug("POST {s}", .{url});
     var req = try fetchJson(alloc, .POST, url, .{
         .tag_name = config.tag,
         .target_commitish = config.commit,
@@ -122,7 +121,6 @@ pub fn main() !void {
         const contents = try file.reader().readAllAlloc(alloc, std.math.maxInt(usize));
         defer alloc.free(contents);
 
-        std.log.debug("POST {s}", .{upload_url});
         var upreq = try fetchRaw(alloc, .POST, upload_url, contents);
         defer upreq.deinit();
         std.testing.expectEqual(@as(u16, 201), upreq.status.code) catch {};

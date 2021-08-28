@@ -125,7 +125,9 @@ pub fn main() !void {
         const actualupurl = try std.mem.concat(alloc, u8, &.{ upload_url, "?name=", item.name });
         var upreq = try fetchRaw(alloc, config.token, .POST, actualupurl, contents);
         defer upreq.deinit();
-        std.testing.expectEqual(@as(u16, 201), upreq.status.code) catch {};
+        std.testing.expectEqual(@as(u16, 201), upreq.status.code) catch {
+            std.log.debug("{s}", .{upreq.reader().readAllAlloc(alloc, std.math.maxInt(usize))});
+        };
     }
 }
 

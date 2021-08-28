@@ -21,5 +21,5 @@ jobs:
       - uses: nektro/actions-setup-zigmod@v1
       - run: zigmod version
       - run: zigmod ci
-      # - run: ./build_all.sh
+      - run: ./build_all.sh
       - run: ./make_release.sh ${{ secrets.GITHUB_TOKEN }}

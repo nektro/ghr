@@ -18,5 +18,6 @@ zig build
     -u "$PROJECT_USERNAME" \
     -r "$PROJECT_REPONAME" \
     -b "$(./changelog.sh)" \
+    -draft \
     "$version" \
     "./zig-out/bin/"

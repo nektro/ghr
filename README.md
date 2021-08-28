@@ -19,6 +19,8 @@ $ ghr [option] TAG PATH
 -b BODY         #  Set text describing the contents of the release
 -draft          #  Release as draft (Unpublish)
 -prerelease     #  Create prerelease
+TAG             # *Name of the git tag to create
+PATH            # *Directory that contains the artifacts to upload
 ```
 
 ## Installation

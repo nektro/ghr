@@ -34,7 +34,7 @@ pub fn main() !void {
         .body = "",
         .tag = "",
         .path = "",
-        .draft = true,
+        .draft = false,
         .prerelease = false,
     };
 

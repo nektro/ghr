@@ -114,19 +114,23 @@ pub fn main() !void {
     const dir = try std.fs.cwd().openDir(config.path, .{ .iterate = true });
     var iter = dir.iterate();
     while (try iter.next()) |item| {
+        var arena2 = std.heap.ArenaAllocator.init(alloc);
+        defer arena2.deinit();
+        const alloc2 = &arena2.allocator;
+
         if (item.kind != .File) continue;
         try stdout.print("--> Uploading: {s}\n", .{item.name});
-        const path = try std.fs.path.join(alloc, &.{ config.path, item.name });
+        const path = try std.fs.path.join(alloc2, &.{ config.path, item.name });
 
         const file = try std.fs.cwd().openFile(path, .{});
-        const contents = try file.reader().readAllAlloc(alloc, std.math.maxInt(usize));
-        defer alloc.free(contents);
+        const contents = try file.reader().readAllAlloc(alloc2, std.math.maxInt(usize));
+        defer alloc2.free(contents);
 
-        const actualupurl = try std.mem.concat(alloc, u8, &.{ upload_url, "?name=", item.name });
-        var upreq = try fetchRaw(alloc, config.token, .POST, actualupurl, contents);
+        const actualupurl = try std.mem.concat(alloc2, u8, &.{ upload_url, "?name=", item.name });
+        var upreq = try fetchRaw(alloc2, config.token, .POST, actualupurl, contents);
         defer upreq.deinit();
         std.testing.expectEqual(@as(u16, 201), upreq.status.code) catch {
-            std.log.debug("{s}", .{upreq.reader().readAllAlloc(alloc, std.math.maxInt(usize))});
+            std.log.debug("{s}", .{upreq.reader().readAllAlloc(alloc2, std.math.maxInt(usize))});
         };
     }
 }

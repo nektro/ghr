@@ -124,11 +124,9 @@ pub fn main() !void {
 
         const file = try std.fs.cwd().openFile(path, .{});
         const contents = try file.reader().readAllAlloc(alloc2, std.math.maxInt(usize));
-        defer alloc2.free(contents);
 
         const actualupurl = try std.mem.concat(alloc2, u8, &.{ upload_url, "?name=", item.name });
         var upreq = try fetchRaw(alloc2, config.token, .POST, actualupurl, contents);
-        defer upreq.deinit();
         std.testing.expectEqual(@as(u16, 201), upreq.status.code) catch {
             std.log.debug("{s}", .{upreq.reader().readAllAlloc(alloc2, std.math.maxInt(usize))});
         };

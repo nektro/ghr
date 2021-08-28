@@ -102,7 +102,6 @@ pub fn main() !void {
 
     const stdout = std.io.getStdOut().writer();
     try stdout.print("info: creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
-    try stdout.print("debug: status: {d} {s}\n", .{ req.status.code, req.status.reason });
     std.testing.expectEqual(@as(u16, 201), req.status.code) catch std.os.exit(1);
 
     const reader = req.reader();

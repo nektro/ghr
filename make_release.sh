@@ -6,7 +6,6 @@ tagcount=$(git tag | wc -l)
 tagcount=$((tagcount+1))
 
 version="v$tagcount"
-echo $version
 
 GITHUB_TOKEN="$1"
 PROJECT_USERNAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
@@ -19,5 +18,5 @@ zig build
     -u "$PROJECT_USERNAME" \
     -r "$PROJECT_REPONAME" \
     -b "$(./changelog.sh)" \
-    "$tag" \
-    "./bin/"
+    "$version" \
+    "./zig-out/bin/"

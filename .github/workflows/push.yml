@@ -22,4 +22,5 @@ jobs:
       - run: zigmod version
       - run: zigmod ci
       - run: ./build_all.sh
+      - run: ./changelog.sh
       - run: ./make_release.sh ${{ secrets.GITHUB_TOKEN }}

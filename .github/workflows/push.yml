@@ -10,6 +10,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - run: git fetch --all --tags
 
       - name: Setup Zig

@@ -3,5 +3,7 @@ name: ghr
 license: MIT
 description: Create GitHub releases and upload artifacts from the terminal.
 dev_dependencies:
+  - src: git https://github.com/nektro/iguanaTLS
+
   - src: git https://github.com/truemedian/zfetch
   - src: git https://github.com/nektro/zig-json

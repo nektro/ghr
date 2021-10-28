@@ -17,14 +17,12 @@ const Config = struct {
 };
 
 pub fn main() !void {
-    //
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     var arena = std.heap.ArenaAllocator.init(&gpa.allocator);
     defer arena.deinit();
     const alloc = &arena.allocator;
 
-    //
     var config: Config = .{
         .token = "",
         .user = "",
@@ -38,12 +36,10 @@ pub fn main() !void {
         .prerelease = false,
     };
 
-    //
     var envmap = try std.process.getEnvMap(alloc);
     defer envmap.deinit();
     if (envmap.get("GITHUB_TOKEN")) |env| config.token = env;
 
-    //
     var argiter = std.process.args();
     defer argiter.deinit();
     var argi: usize = 0;
@@ -67,14 +63,12 @@ pub fn main() !void {
         break;
     }
 
-    //
     std.debug.assert(config.token.len > 0);
     std.debug.assert(config.user.len > 0);
     std.debug.assert(config.repo.len > 0);
     std.debug.assert(config.tag.len > 0);
     std.debug.assert(config.path.len > 0);
 
-    //
     if (config.title.len == 0) config.title = config.tag;
     if (config.commit.len == 0) config.commit = try rev_HEAD(alloc);
 
@@ -88,7 +82,6 @@ pub fn main() !void {
     // https://docs.github.com/en/rest/reference/repos#update-a-release-asset
     // https://docs.github.com/en/rest/reference/repos#delete-a-release-asset
 
-    //
     const url = try std.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
     var req = try fetchJson(alloc, config.token, .POST, url, .{
         .tag_name = config.tag,

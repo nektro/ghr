@@ -72,16 +72,6 @@ pub fn main() !void {
     if (config.title.len == 0) config.title = config.tag;
     if (config.commit.len == 0) config.commit = try rev_HEAD(alloc);
 
-    // https://docs.github.com/en/rest/reference/repos#create-a-release
-    // https://docs.github.com/en/rest/reference/repos#get-a-release
-    // https://docs.github.com/en/rest/reference/repos#update-a-release
-    // https://docs.github.com/en/rest/reference/repos#delete-a-release
-
-    // https://docs.github.com/en/rest/reference/repos#upload-a-release-asset
-    // https://docs.github.com/en/rest/reference/repos#get-a-release-asset
-    // https://docs.github.com/en/rest/reference/repos#update-a-release-asset
-    // https://docs.github.com/en/rest/reference/repos#delete-a-release-asset
-
     const url = try std.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
     var req = try fetchJson(alloc, config.token, .POST, url, .{
         .tag_name = config.tag,

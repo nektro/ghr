@@ -153,7 +153,7 @@ fn fetchRaw(allocator: *std.mem.Allocator, token: string, method: zfetch.Method,
 // Caller owns returned memory.
 pub fn stringifyAlloc(allocator: *std.mem.Allocator, options: std.json.StringifyOptions, value: anytype) !string {
     var list = std.ArrayList(u8).init(allocator);
-    errdefer list.deinit();
+    defer list.deinit();
     try std.json.stringify(value, options, list.writer());
     return list.toOwnedSlice();
 }

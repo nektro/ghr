@@ -90,7 +90,7 @@ pub fn main() !void {
     const reader = req.reader();
     const body_content = try reader.readAllAlloc(alloc, std.math.maxInt(usize));
     const val = try json.parse(alloc, body_content);
-    var upload_url = val.get("upload_url").?.String;
+    var upload_url = val.getT("upload_url", .String).?;
     upload_url = upload_url[0..std.mem.indexOfScalar(u8, upload_url, '{').?];
 
     const dir = try std.fs.cwd().openDir(config.path, .{ .iterate = true });

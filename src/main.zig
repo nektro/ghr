@@ -19,9 +19,9 @@ const Config = struct {
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
-    var arena = std.heap.ArenaAllocator.init(&gpa.allocator);
+    var arena = std.heap.ArenaAllocator.init(gpa.allocator());
     defer arena.deinit();
-    const alloc = &arena.allocator;
+    const alloc = arena.allocator();
 
     var config: Config = .{
         .token = "",
@@ -98,7 +98,7 @@ pub fn main() !void {
     while (try iter.next()) |item| {
         var arena2 = std.heap.ArenaAllocator.init(alloc);
         defer arena2.deinit();
-        const alloc2 = &arena2.allocator;
+        const alloc2 = arena2.allocator();
 
         if (item.kind != .File) continue;
         try stdout.print("--> Uploading: {s}\n", .{item.name});
@@ -116,7 +116,7 @@ pub fn main() !void {
 }
 
 /// Returns the result of running `git rev-parse HEAD`
-pub fn rev_HEAD(alloc: *std.mem.Allocator) !string {
+pub fn rev_HEAD(alloc: std.mem.Allocator) !string {
     const max = std.math.maxInt(usize);
     const dirg = try std.fs.cwd().openDir(".git", .{});
     const h = std.mem.trim(u8, try dirg.readFileAlloc(alloc, "HEAD", max), "\n");
@@ -124,7 +124,7 @@ pub fn rev_HEAD(alloc: *std.mem.Allocator) !string {
     return r;
 }
 
-fn fetchJson(allocator: *std.mem.Allocator, token: string, method: zfetch.Method, url: string, body: anytype) !*zfetch.Request {
+fn fetchJson(allocator: std.mem.Allocator, token: string, method: zfetch.Method, url: string, body: anytype) !*zfetch.Request {
     var headers = zfetch.Headers.init(allocator);
     defer headers.deinit();
     try headers.appendValue("Accept", "application/vnd.github.v3+json");
@@ -136,7 +136,7 @@ fn fetchJson(allocator: *std.mem.Allocator, token: string, method: zfetch.Method
     return req;
 }
 
-fn fetchRaw(allocator: *std.mem.Allocator, token: string, method: zfetch.Method, url: string, body: []const u8) !*zfetch.Request {
+fn fetchRaw(allocator: std.mem.Allocator, token: string, method: zfetch.Method, url: string, body: []const u8) !*zfetch.Request {
     var headers = zfetch.Headers.init(allocator);
     defer headers.deinit();
     try headers.appendValue("Accept", "application/vnd.github.v3+json");
@@ -151,7 +151,7 @@ fn fetchRaw(allocator: *std.mem.Allocator, token: string, method: zfetch.Method,
 
 // Same as `stringify` but accepts an Allocator and stores result in dynamically allocated memory instead of using a Writer.
 // Caller owns returned memory.
-pub fn stringifyAlloc(allocator: *std.mem.Allocator, options: std.json.StringifyOptions, value: anytype) !string {
+pub fn stringifyAlloc(allocator: std.mem.Allocator, options: std.json.StringifyOptions, value: anytype) !string {
     var list = std.ArrayList(u8).init(allocator);
     defer list.deinit();
     try std.json.stringify(value, options, list.writer());

@@ -43,23 +43,23 @@ pub fn main() !void {
     var argiter = std.process.args();
     defer argiter.deinit();
     var argi: usize = 0;
-    while (try argiter.next(alloc)) |item| : (argi += 1) {
+    while (argiter.next()) |item| : (argi += 1) {
         if (argi == 0) continue;
         const data = item;
 
         // zig fmt: off
-        if (std.mem.eql(u8, data, "-t")) { config.token = (try argiter.next(alloc)).?;    continue; }
-        if (std.mem.eql(u8, data, "-u")) { config.user = (try argiter.next(alloc)).?; continue; }
-        if (std.mem.eql(u8, data, "-r")) { config.repo = (try argiter.next(alloc)).?;     continue; }
-        if (std.mem.eql(u8, data, "-c")) { config.commit = (try argiter.next(alloc)).?;   continue; }
-        if (std.mem.eql(u8, data, "-n")) { config.title = (try argiter.next(alloc)).?;    continue; }
-        if (std.mem.eql(u8, data, "-b")) { config.body = (try argiter.next(alloc)).?;     continue; }
+        if (std.mem.eql(u8, data, "-t")) { config.token = argiter.next().?;    continue; }
+        if (std.mem.eql(u8, data, "-u")) { config.user = argiter.next().?;     continue; }
+        if (std.mem.eql(u8, data, "-r")) { config.repo = argiter.next().?;     continue; }
+        if (std.mem.eql(u8, data, "-c")) { config.commit = argiter.next().?;   continue; }
+        if (std.mem.eql(u8, data, "-n")) { config.title = argiter.next().?;    continue; }
+        if (std.mem.eql(u8, data, "-b")) { config.body = argiter.next().?;     continue; }
         if (std.mem.eql(u8, data, "-draft")) { config.draft = true; continue; }
         if (std.mem.eql(u8, data, "-prerelease")) { config.prerelease = true; continue; }
         // zig fmt: on
 
         config.tag = data;
-        config.path = (try argiter.next(alloc)).?;
+        config.path = argiter.next().?;
         break;
     }
 

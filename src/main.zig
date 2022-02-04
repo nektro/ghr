@@ -40,7 +40,7 @@ pub fn main() !void {
     defer envmap.deinit();
     if (envmap.get("GITHUB_TOKEN")) |env| config.token = env;
 
-    var argiter = std.process.args();
+    var argiter = try std.process.argsWithAllocator(alloc);
     defer argiter.deinit();
     var argi: usize = 0;
     while (argiter.next()) |item| : (argi += 1) {

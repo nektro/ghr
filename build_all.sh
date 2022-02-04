@@ -6,9 +6,12 @@ tagcount=$(git tag | wc -l)
 tagcount=$((tagcount+1))
 
 targets="
-x86_64-linux
-x86_64-macos
-x86_64-windows
+x86_64-linux-musl
+x86_64-macos-gnu
+x86_64-windows-gnu
+aarch64-linux-musl
+aarch64-macos-gnu
+aarch64-windows-gnu
 "
 
 for item in $targets

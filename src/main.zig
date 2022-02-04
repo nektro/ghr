@@ -1,7 +1,7 @@
 const std = @import("std");
+const string = []const u8;
 const zfetch = @import("zfetch");
 const json = @import("json");
-const string = []const u8;
 
 const Config = struct {
     token: string,
@@ -45,20 +45,19 @@ pub fn main() !void {
     var argi: usize = 0;
     while (argiter.next()) |item| : (argi += 1) {
         if (argi == 0) continue;
-        const data = item;
 
         // zig fmt: off
-        if (std.mem.eql(u8, data, "-t")) { config.token = argiter.next().?;    continue; }
-        if (std.mem.eql(u8, data, "-u")) { config.user = argiter.next().?;     continue; }
-        if (std.mem.eql(u8, data, "-r")) { config.repo = argiter.next().?;     continue; }
-        if (std.mem.eql(u8, data, "-c")) { config.commit = argiter.next().?;   continue; }
-        if (std.mem.eql(u8, data, "-n")) { config.title = argiter.next().?;    continue; }
-        if (std.mem.eql(u8, data, "-b")) { config.body = argiter.next().?;     continue; }
-        if (std.mem.eql(u8, data, "-draft")) { config.draft = true; continue; }
-        if (std.mem.eql(u8, data, "-prerelease")) { config.prerelease = true; continue; }
+        if (std.mem.eql(u8, item, "-t")) { config.token = argiter.next().?;   continue; }
+        if (std.mem.eql(u8, item, "-u")) { config.user = argiter.next().?;    continue; }
+        if (std.mem.eql(u8, item, "-r")) { config.repo = argiter.next().?;    continue; }
+        if (std.mem.eql(u8, item, "-c")) { config.commit = argiter.next().?;  continue; }
+        if (std.mem.eql(u8, item, "-n")) { config.title = argiter.next().?;   continue; }
+        if (std.mem.eql(u8, item, "-b")) { config.body = argiter.next().?;    continue; }
+        if (std.mem.eql(u8, item, "-draft")) { config.draft = true;           continue; }
+        if (std.mem.eql(u8, item, "-prerelease")) { config.prerelease = true; continue; }
         // zig fmt: on
 
-        config.tag = data;
+        config.tag = item;
         config.path = argiter.next().?;
         break;
     }
@@ -132,7 +131,7 @@ fn fetchJson(allocator: std.mem.Allocator, token: string, method: zfetch.Method,
     try headers.appendValue("Content-Type", "application/json");
 
     var req = try zfetch.Request.init(allocator, url, null);
-    try req.do(method, headers, try stringifyAlloc(allocator, .{}, body));
+    try req.do(method, headers, try std.json.stringifyAlloc(allocator, body, .{}));
     return req;
 }
 
@@ -147,13 +146,4 @@ fn fetchRaw(allocator: std.mem.Allocator, token: string, method: zfetch.Method, 
     var req = try zfetch.Request.init(allocator, url, null);
     try req.do(method, headers, body);
     return req;
-}
-
-// Same as `stringify` but accepts an Allocator and stores result in dynamically allocated memory instead of using a Writer.
-// Caller owns returned memory.
-pub fn stringifyAlloc(allocator: std.mem.Allocator, options: std.json.StringifyOptions, value: anytype) !string {
-    var list = std.ArrayList(u8).init(allocator);
-    defer list.deinit();
-    try std.json.stringify(value, options, list.writer());
-    return list.toOwnedSlice();
 }

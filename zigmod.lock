@@ -4,5 +4,5 @@ git https://github.com/truemedian/zfetch commit-5a7ce5811ee19fb959b41c718018f461
 git https://github.com/truemedian/hzzp commit-bf5aaf224e94561e035a631c3c40fbf02faa27d2
 git https://github.com/MasterQ32/zig-uri commit-e879df3a236869f92298fbe2db3c25e6e84cfd4c
 git https://github.com/nektro/zig-json commit-a091eaa9f9ae91c3875630ba1983b33ea04971a3
-git https://github.com/nektro/zig-extras commit-aa4f77ea988ad23fee6af78afbb1daafbd7193a2
+git https://github.com/nektro/zig-extras commit-ca8682fcc342b4ee9b2673b3d298d8d88ff8664f
 git https://github.com/nektro/zig-range commit-4b2f12808aa09be4b27a163efc424dd4e0415992

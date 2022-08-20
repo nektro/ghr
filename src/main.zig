@@ -92,7 +92,7 @@ pub fn main() !void {
     var upload_url = val.getT("upload_url", .String).?;
     upload_url = upload_url[0..std.mem.indexOfScalar(u8, upload_url, '{').?];
 
-    const dir = try std.fs.cwd().openDir(config.path, .{ .iterate = true });
+    const dir = try std.fs.cwd().openIterableDir(config.path, .{});
     var iter = dir.iterate();
     while (try iter.next()) |item| {
         var arena2 = std.heap.ArenaAllocator.init(alloc);
@@ -109,7 +109,7 @@ pub fn main() !void {
         const actualupurl = try std.mem.concat(alloc2, u8, &.{ upload_url, "?name=", item.name });
         var upreq = try fetchRaw(alloc2, config.token, .POST, actualupurl, contents);
         std.testing.expectEqual(@as(u16, 201), upreq.status.code) catch {
-            std.log.debug("{s}", .{upreq.reader().readAllAlloc(alloc2, std.math.maxInt(usize))});
+            std.log.debug("{s}", .{try upreq.reader().readAllAlloc(alloc2, std.math.maxInt(usize))});
         };
     }
 }

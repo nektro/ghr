@@ -1,7 +1,7 @@
 const std = @import("std");
 const string = []const u8;
 const zfetch = @import("zfetch");
-const json = @import("json");
+const extras = @import("extras");
 
 const Config = struct {
     token: string,
@@ -84,12 +84,12 @@ pub fn main() !void {
 
     const stdout = std.io.getStdOut().writer();
     try stdout.print("info: creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
-    std.testing.expectEqual(@as(u16, 201), req.status.code) catch std.os.exit(1);
+    std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.status)) catch std.os.exit(1);
 
     const reader = req.reader();
     const body_content = try reader.readAllAlloc(alloc, std.math.maxInt(usize));
-    const val = try json.parse(alloc, body_content);
-    var upload_url = val.getT("upload_url", .String).?;
+    const val = try extras.parse_json(alloc, body_content);
+    var upload_url = val.value.object.get("upload_url").?.string;
     upload_url = upload_url[0..std.mem.indexOfScalar(u8, upload_url, '{').?];
 
     const dir = try std.fs.cwd().openIterableDir(config.path, .{});
@@ -99,7 +99,7 @@ pub fn main() !void {
         defer arena2.deinit();
         const alloc2 = arena2.allocator();
 
-        if (item.kind != .File) continue;
+        if (item.kind != .file) continue;
         try stdout.print("--> Uploading: {s}\n", .{item.name});
         const path = try std.fs.path.join(alloc2, &.{ config.path, item.name });
 
@@ -108,7 +108,7 @@ pub fn main() !void {
 
         const actualupurl = try std.mem.concat(alloc2, u8, &.{ upload_url, "?name=", item.name });
         var upreq = try fetchRaw(alloc2, config.token, .POST, actualupurl, contents);
-        std.testing.expectEqual(@as(u16, 201), upreq.status.code) catch {
+        std.testing.expectEqual(@as(u16, 201), @intFromEnum(upreq.status)) catch {
             std.log.debug("{s}", .{try upreq.reader().readAllAlloc(alloc2, std.math.maxInt(usize))});
         };
     }
@@ -123,7 +123,7 @@ pub fn rev_HEAD(alloc: std.mem.Allocator) !string {
     return r;
 }
 
-fn fetchJson(allocator: std.mem.Allocator, token: string, method: zfetch.Method, url: string, body: anytype) !*zfetch.Request {
+fn fetchJson(allocator: std.mem.Allocator, token: string, method: std.http.Method, url: string, body: anytype) !*zfetch.Request {
     var headers = zfetch.Headers.init(allocator);
     defer headers.deinit();
     try headers.appendValue("Accept", "application/vnd.github.v3+json");
@@ -135,7 +135,7 @@ fn fetchJson(allocator: std.mem.Allocator, token: string, method: zfetch.Method,
     return req;
 }
 
-fn fetchRaw(allocator: std.mem.Allocator, token: string, method: zfetch.Method, url: string, body: []const u8) !*zfetch.Request {
+fn fetchRaw(allocator: std.mem.Allocator, token: string, method: std.http.Method, url: string, body: []const u8) !*zfetch.Request {
     var headers = zfetch.Headers.init(allocator);
     defer headers.deinit();
     try headers.appendValue("Accept", "application/vnd.github.v3+json");

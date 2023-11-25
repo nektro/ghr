@@ -4,21 +4,22 @@ const deps = @import("./deps.zig");
 
 pub fn build(b: *std.build.Builder) void {
     const target = b.standardTargetOptions(.{});
-
-    const mode = b.standardReleaseOptions();
+    const mode = b.option(std.builtin.Mode, "mode", "") orelse .Debug;
 
     const use_full_name = b.option(bool, "full-name", "") orelse false;
     const with_os_arch = b.fmt("-{s}-{s}", .{ @tagName(target.os_tag orelse builtin.os.tag), @tagName(target.cpu_arch orelse builtin.cpu.arch) });
     const exe_name = b.fmt("{s}{s}", .{ "ghr", if (use_full_name) with_os_arch else "" });
 
-    const exe = b.addExecutable(exe_name, "src/main.zig");
-    exe.setTarget(target);
-    exe.setBuildMode(mode);
+    const exe = b.addExecutable(.{
+        .name = exe_name,
+        .root_source_file = .{ .path = "src/main.zig" },
+        .target = target,
+        .optimize = mode,
+    });
     deps.addAllTo(exe);
-    exe.use_stage1 = true;
-    exe.install();
+    b.installArtifact(exe);
 
-    const run_cmd = exe.run();
+    const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);

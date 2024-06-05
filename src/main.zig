@@ -84,7 +84,7 @@ pub fn main() !void {
 
     const stdout = std.io.getStdOut().writer();
     try stdout.print("info: creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
-    std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.status)) catch std.os.exit(1);
+    std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.status)) catch std.process.exit(1);
 
     const reader = req.reader();
     const body_content = try reader.readAllAlloc(alloc, std.math.maxInt(usize));
@@ -92,7 +92,7 @@ pub fn main() !void {
     var upload_url = val.value.object.get("upload_url").?.string;
     upload_url = upload_url[0..std.mem.indexOfScalar(u8, upload_url, '{').?];
 
-    const dir = try std.fs.cwd().openIterableDir(config.path, .{});
+    const dir = try std.fs.cwd().openDir(config.path, .{ .iterate = true });
     var iter = dir.iterate();
     while (try iter.next()) |item| {
         var arena2 = std.heap.ArenaAllocator.init(alloc);

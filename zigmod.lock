@@ -3,6 +3,8 @@ git https://github.com/nektro/iguanaTLS commit-4dc8850883b49e4a452871298788b06b1
 git https://github.com/nektro/zfetch commit-863be236188e5f24d16554f9dcd7df96dd254a13
 git https://github.com/nektro/zig-extras commit-74f0ddb0a4dfa7921739b88cc381951a6b6e73ce
 git https://github.com/nektro/zig-git commit-103f4e419c35b88f802bb8234ece1c0a9aa40c03
+git https://github.com/nektro/zig-intrusive-parser commit-6f4a3c90e438793bcf44a88c1404839ac01e04e9
+git https://github.com/nektro/zig-json commit-29587071de6dd3338e8eb76d4e0307af69a2d61a
 git https://github.com/nektro/zig-time commit-ba546bbf2e8438c9b2325f36f392c9d95b432e8e
 git https://github.com/nektro/zig-tracer commit-ad868b45cfd445aa4d3f53cf8dda4b62b73efb54
 git https://github.com/truemedian/hzzp commit-a7f03a1e652abe8c89b376d090cec50acb0d2a1a

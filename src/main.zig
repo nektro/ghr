@@ -1,8 +1,8 @@
 const std = @import("std");
 const string = []const u8;
 const zfetch = @import("zfetch");
-const extras = @import("extras");
 const git = @import("git");
+const json = @import("json");
 
 const Config = struct {
     token: string,
@@ -87,10 +87,12 @@ pub fn main() !void {
     try stdout.print("info: creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
     std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.status)) catch std.process.exit(1);
 
-    const reader = req.reader();
-    const body_content = try reader.readAllAlloc(alloc, std.math.maxInt(usize));
-    const val = try extras.parse_json(alloc, body_content);
-    var upload_url = val.value.object.get("upload_url").?.string;
+    const doc = try json.parse(alloc, "", req.reader(), .{ .support_trailing_commas = true, .maximum_depth = 100 });
+    defer doc.deinit(alloc);
+    doc.acquire();
+    defer doc.release();
+
+    var upload_url = doc.root.object().getS("upload_url").?;
     upload_url = upload_url[0..std.mem.indexOfScalar(u8, upload_url, '{').?];
 
     const dir = try std.fs.cwd().openDir(config.path, .{ .iterate = true });

@@ -6,3 +6,4 @@ min_zig_version: 0.12.0
 root_dependencies:
   - src: git https://github.com/nektro/zfetch
   - src: git https://github.com/nektro/zig-extras
+  - src: git https://github.com/nektro/zig-git

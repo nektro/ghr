@@ -2,6 +2,7 @@ const std = @import("std");
 const string = []const u8;
 const zfetch = @import("zfetch");
 const extras = @import("extras");
+const git = @import("git");
 
 const Config = struct {
     token: string,
@@ -116,12 +117,10 @@ pub fn main() !void {
 
 /// Returns the result of running `git rev-parse HEAD`
 pub fn rev_HEAD(alloc: std.mem.Allocator) !string {
-    const max = std.math.maxInt(usize);
     var dirg = try std.fs.cwd().openDir(".git", .{});
     defer dirg.close();
-    const h = std.mem.trim(u8, try dirg.readFileAlloc(alloc, "HEAD", max), "\n");
-    const r = std.mem.trim(u8, try dirg.readFileAlloc(alloc, h[5..], max), "\n");
-    return r;
+    const commit = try git.getHEAD(alloc, dirg);
+    return commit.?.id;
 }
 
 fn fetchJson(allocator: std.mem.Allocator, token: string, method: std.http.Method, url: string, body: anytype) !*zfetch.Request {

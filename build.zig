@@ -10,6 +10,8 @@ pub fn build(b: *std.Build) void {
     const exe = makeExe(b, use_full_name, target, mode);
     b.installArtifact(exe);
 
+    //
+
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
@@ -18,6 +20,16 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+
+    //
+
+    const all_step = b.step("all", "Build for all supported targets");
+    all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "x86_64-linux-musl"), .{}).step);
+    all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "x86_64-macos"), .{}).step);
+    all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "x86_64-windows-gnu"), .{}).step);
+    all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "aarch64-linux-musl"), .{}).step);
+    all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "aarch64-macos"), .{}).step);
+    all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "aarch64-windows-gnu"), .{}).step);
 }
 
 fn makeExe(b: *std.Build, use_fullname: bool, target: std.Build.ResolvedTarget, mode: std.builtin.Mode) *std.Build.Step.Compile {
@@ -32,4 +44,9 @@ fn makeExe(b: *std.Build, use_fullname: bool, target: std.Build.ResolvedTarget, 
     });
     deps.addAllTo(exe);
     return exe;
+}
+
+fn makeExe2(b: *std.Build, use_fullname: bool, mode: std.builtin.Mode, target_str: []const u8) *std.Build.Step.Compile {
+    const target = b.resolveTargetQuery(std.Target.Query.parse(.{ .arch_os_abi = target_str }) catch @panic("bad target"));
+    return makeExe(b, use_fullname, target, mode);
 }

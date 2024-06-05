@@ -7,16 +7,7 @@ pub fn build(b: *std.Build) void {
     const mode = b.option(std.builtin.Mode, "mode", "") orelse .Debug;
 
     const use_full_name = b.option(bool, "full-name", "") orelse false;
-    const with_os_arch = b.fmt("-{s}-{s}", .{ @tagName(target.result.os.tag), @tagName(target.result.cpu.arch) });
-    const exe_name = b.fmt("{s}{s}", .{ "ghr", if (use_full_name) with_os_arch else "" });
-
-    const exe = b.addExecutable(.{
-        .name = exe_name,
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = mode,
-    });
-    deps.addAllTo(exe);
+    const exe = makeExe(b, use_full_name, target, mode);
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
@@ -27,4 +18,18 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+}
+
+fn makeExe(b: *std.Build, use_fullname: bool, target: std.Build.ResolvedTarget, mode: std.builtin.Mode) *std.Build.Step.Compile {
+    const with_os_arch = b.fmt("-{s}-{s}", .{ @tagName(target.result.os.tag), @tagName(target.result.cpu.arch) });
+    const exe_name = b.fmt("{s}{s}", .{ "ghr", if (use_fullname) with_os_arch else "" });
+
+    const exe = b.addExecutable(.{
+        .name = exe_name,
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = mode,
+    });
+    deps.addAllTo(exe);
+    return exe;
 }

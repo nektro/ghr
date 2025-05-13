@@ -14,14 +14,16 @@ jobs:
           fetch-depth: 0
       - run: git fetch --all --tags
 
-      - name: Setup Zig
-        uses: goto-bus-stop/setup-zig@v1
+      - uses: mlugg/setup-zig@v1
         with:
-          version: 0.12.0
+          mirror: "http://mirrors.nektro.net/s3cgi"
+          version: 0.13.0
 
       - run: zig version
       - run: zig env
+
       - uses: nektro/actions-setup-zigmod@v1
+
       - run: zigmod version
       - run: zigmod ci
       - run: zig build all

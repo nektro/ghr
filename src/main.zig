@@ -63,11 +63,32 @@ pub fn main() !void {
         break;
     }
 
-    std.debug.assert(config.token.len > 0);
-    std.debug.assert(config.user.len > 0);
-    std.debug.assert(config.repo.len > 0);
-    std.debug.assert(config.tag.len > 0);
-    std.debug.assert(config.path.len > 0);
+    if (config.token.len == 0) {
+        std.log.err("token is empty! pass -t option or set $GITHUB_TOKEN to continue", .{});
+        std.process.exit(1);
+    }
+
+    if (config.user.len == 0) {
+        std.log.err("user is empty! pass -u option to continue", .{});
+        std.process.exit(1);
+    }
+
+    if (config.repo.len == 0) {
+        std.log.err("repo is empty! pass -r option to continue", .{});
+        std.process.exit(1);
+    }
+
+    if (config.tag.len == 0) {
+        std.log.err("tag is empty!", .{});
+        std.log.err("   ghr [options] <tag> <path>", .{});
+        std.process.exit(1);
+    }
+
+    if (config.path.len == 0) {
+        std.log.err("path is empty!", .{});
+        std.log.err("   ghr [options] <tag> <path>", .{});
+        std.process.exit(1);
+    }
 
     if (config.title.len == 0) config.title = config.tag;
     if (config.commit.len == 0) config.commit = try rev_HEAD(alloc);

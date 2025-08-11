@@ -1,7 +1,6 @@
 const std = @import("std");
 const string = []const u8;
 const zfetch = @import("zfetch");
-const git = @import("git");
 const json = @import("json");
 
 const Config = struct {
@@ -69,13 +68,14 @@ pub fn main() !void {
     }
 
     if (config.user.len == 0) {
-        std.log.err("user is empty! pass -u option to continue", .{});
-        std.process.exit(1);
+        std.log.warn("user (-u) is empty! reading $GITHUB_REPOSITORY instead", .{});
+        config.user = std.posix.getenv("GITHUB_REPOSITORY_OWNER") orelse @panic("$GITHUB_REPOSITORY_OWNER not set");
     }
 
     if (config.repo.len == 0) {
-        std.log.err("repo is empty! pass -r option to continue", .{});
-        std.process.exit(1);
+        std.log.warn("repo (-r) is empty! reading $GITHUB_REPOSITORY instead", .{});
+        config.repo = std.posix.getenv("GITHUB_REPOSITORY") orelse @panic("$GITHUB_REPOSITORY not set");
+        config.repo = config.repo[std.mem.indexOfScalar(u8, config.repo, '/').? + 1 ..];
     }
 
     if (config.tag.len == 0) {
@@ -91,7 +91,7 @@ pub fn main() !void {
     }
 
     if (config.title.len == 0) config.title = config.tag;
-    if (config.commit.len == 0) config.commit = try rev_HEAD(alloc);
+    if (config.commit.len == 0) config.commit = std.posix.getenv("GITHUB_SHA") orelse @panic("-c option not set and $GITHUB_SHA empty!");
 
     const url = try std.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
     var req = try fetchJson(alloc, config.token, .POST, url, .{
@@ -136,14 +136,6 @@ pub fn main() !void {
             std.log.debug("{s}", .{try upreq.reader().readAllAlloc(alloc2, std.math.maxInt(usize))});
         };
     }
-}
-
-/// Returns the result of running `git rev-parse HEAD`
-pub fn rev_HEAD(alloc: std.mem.Allocator) !string {
-    var dirg = try std.fs.cwd().openDir(".git", .{});
-    defer dirg.close();
-    const commit = try git.getHEAD(alloc, dirg);
-    return commit.?.id;
 }
 
 fn fetchJson(allocator: std.mem.Allocator, token: string, method: std.http.Method, url: string, body: anytype) !*zfetch.Request {

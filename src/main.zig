@@ -121,9 +121,10 @@ pub fn main() !void {
     try req.finish();
     try req.wait();
 
-    const stdout = std.io.getStdOut().writer();
-    try stdout.print("info: creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
-    std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.response.status)) catch std.process.exit(1);
+    std.log.info("creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
+    std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.response.status)) catch {
+        std.log.err("{s}", .{try req.reader().readAllAlloc(alloc, std.math.maxInt(usize))});
+    };
 
     const doc = try json.parse(alloc, "", nio.AnyReadable.fromStd(&req.reader()), .{ .support_trailing_commas = true, .maximum_depth = 100 });
     defer doc.deinit(alloc);
@@ -141,7 +142,7 @@ pub fn main() !void {
         const alloc2 = arena2.allocator();
 
         if (item.kind != .file) continue;
-        try stdout.print("--> Uploading: {s}\n", .{item.name});
+        std.log.info("--> Uploading: {s}\n", .{item.name});
         const path = try std.fs.path.join(alloc2, &.{ config.path, item.name });
 
         const file = try std.fs.cwd().openFile(path, .{});

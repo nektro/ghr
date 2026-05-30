@@ -12,6 +12,22 @@ Create GitHub releases and upload artifacts from the terminal.
 
 Based on the popular https://github.com/tcnksm/ghr, brought to the world of Zig.
 
+## Install
+
+```
+$ zigmod install git https://github.com/nektro/ghr
+```
+
+Or download directly from https://github.com/nektro/ghr/releases
+
+Or from source:
+
+```
+$ zigmod ci
+$ zig build
+```
+
+
 ## Usage
 
 ```sh
@@ -31,19 +47,4 @@ $ ghr [option] TAG PATH
 -prerelease     #  Create prerelease
 TAG             # *Name of the git tag to create
 PATH            # *Directory that contains the artifacts to upload
-```
-
-## Installation
-
-With [Zigmod](https://github.com/nektro/zigmod)
-
-```sh
-$ zigmod aq install 1/nektro/ghr
-```
-
-From Source
-
-```
-zigmod fetch
-zig build
 ```

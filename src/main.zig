@@ -97,7 +97,7 @@ pub fn main() !void {
     var client: std.http.Client = .{ .allocator = alloc };
     defer client.deinit();
 
-    const url = try std.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
+    const url = try nio.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
     const body = try json.stringifyAlloc(alloc, .{
         .tag_name = config.tag,
         .target_commitish = config.commit,

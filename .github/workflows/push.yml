@@ -26,6 +26,6 @@ jobs:
 
       - run: zigmod version
       - run: zigmod ci
-      - run: zig build all
+      - run: zig build all --summary all
       - run: ./changelog.sh
       - run: ./make_release.sh ${{ secrets.GITHUB_TOKEN }}

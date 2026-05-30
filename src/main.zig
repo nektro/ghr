@@ -1,6 +1,5 @@
 const std = @import("std");
 const string = []const u8;
-const zfetch = @import("zfetch");
 const json = @import("json");
 const nio = @import("nio");
 
@@ -94,20 +93,37 @@ pub fn main() !void {
     if (config.title.len == 0) config.title = config.tag;
     if (config.commit.len == 0) config.commit = std.posix.getenv("GITHUB_SHA") orelse @panic("-c option not set and $GITHUB_SHA empty!");
 
+    var buf: [4096]u8 = @splat(0);
+    var client: std.http.Client = .{ .allocator = alloc };
+    defer client.deinit();
+
     const url = try std.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
-    var req = try fetchJson(alloc, config.token, .POST, url, .{
+    const body = try json.stringifyAlloc(alloc, .{
         .tag_name = config.tag,
         .target_commitish = config.commit,
         .name = config.title,
         .body = config.body,
         .draft = config.draft,
         .prerelease = config.prerelease,
+    }, .{});
+    var req = try client.open(.POST, try std.Uri.parse(url), .{
+        .server_header_buffer = &buf,
+        .headers = .{
+            .accept_encoding = .{ .override = "application/vnd.github.v3+json" },
+            .authorization = .{ .override = try std.mem.join(alloc, " ", &.{ "token", config.token }) },
+            .content_type = .{ .override = "application/octet-stream" },
+        },
     });
     defer req.deinit();
+    req.transfer_encoding = .{ .content_length = body.len };
+    try req.send();
+    try req.writeAll(body);
+    try req.finish();
+    try req.wait();
 
     const stdout = std.io.getStdOut().writer();
     try stdout.print("info: creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
-    std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.status)) catch std.process.exit(1);
+    std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.response.status)) catch std.process.exit(1);
 
     const doc = try json.parse(alloc, "", nio.AnyReadable.fromStd(&req.reader()), .{ .support_trailing_commas = true, .maximum_depth = 100 });
     defer doc.deinit(alloc);
@@ -132,34 +148,22 @@ pub fn main() !void {
         const contents = try file.reader().readAllAlloc(alloc2, std.math.maxInt(usize));
 
         const actualupurl = try std.mem.concat(alloc2, u8, &.{ upload_url, "?name=", item.name });
-        var upreq = try fetchRaw(alloc2, config.token, .POST, actualupurl, contents);
-        std.testing.expectEqual(@as(u16, 201), @intFromEnum(upreq.status)) catch {
+        var upreq = try client.open(.POST, try std.Uri.parse(actualupurl), .{
+            .server_header_buffer = &buf,
+            .headers = .{
+                .accept_encoding = .{ .override = "application/vnd.github.v3+json" },
+                .authorization = .{ .override = try std.mem.join(alloc2, " ", &.{ "token", config.token }) },
+                .content_type = .{ .override = "application/octet-stream" },
+            },
+        });
+        defer upreq.deinit();
+        upreq.transfer_encoding = .{ .content_length = contents.len };
+        try upreq.send();
+        try upreq.writeAll(contents);
+        try upreq.finish();
+        try upreq.wait();
+        std.testing.expectEqual(@as(u16, 201), @intFromEnum(upreq.response.status)) catch {
             std.log.debug("{s}", .{try upreq.reader().readAllAlloc(alloc2, std.math.maxInt(usize))});
         };
     }
-}
-
-fn fetchJson(allocator: std.mem.Allocator, token: string, method: std.http.Method, url: string, body: anytype) !*zfetch.Request {
-    var headers = zfetch.Headers.init(allocator);
-    defer headers.deinit();
-    try headers.appendValue("Accept", "application/vnd.github.v3+json");
-    try headers.appendValue("Authorization", try std.mem.join(allocator, " ", &.{ "token", token }));
-    try headers.appendValue("Content-Type", "application/json");
-
-    var req = try zfetch.Request.init(allocator, url, null);
-    try req.do(method, headers, try std.json.stringifyAlloc(allocator, body, .{}));
-    return req;
-}
-
-fn fetchRaw(allocator: std.mem.Allocator, token: string, method: std.http.Method, url: string, body: []const u8) !*zfetch.Request {
-    var headers = zfetch.Headers.init(allocator);
-    defer headers.deinit();
-    try headers.appendValue("Accept", "application/vnd.github.v3+json");
-    try headers.appendValue("Authorization", try std.mem.join(allocator, " ", &.{ "token", token }));
-    try headers.appendValue("Content-Type", "application/octet-stream");
-    try headers.appendValue("Content-Length", try std.fmt.allocPrint(allocator, "{d}", .{body.len}));
-
-    var req = try zfetch.Request.init(allocator, url, null);
-    try req.do(method, headers, body);
-    return req;
 }

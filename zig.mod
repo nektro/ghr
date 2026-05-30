@@ -4,6 +4,5 @@ license: MIT
 description: Create GitHub releases and upload artifacts from the terminal.
 min_zig_version: 0.14.0
 root_dependencies:
-  - src: git https://github.com/nektro/zfetch
   - src: git https://github.com/nektro/zig-json
   - src: git https://github.com/nektro/zig-nio

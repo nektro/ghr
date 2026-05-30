@@ -111,7 +111,7 @@ pub fn main() !void {
         .headers = .{
             .accept_encoding = .{ .override = "application/vnd.github.v3+json" },
             .authorization = .{ .override = try std.mem.join(alloc, " ", &.{ "token", config.token }) },
-            .content_type = .{ .override = "application/octet-stream" },
+            .content_type = .{ .override = "application/json" },
         },
     });
     defer req.deinit();

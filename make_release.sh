@@ -11,9 +11,7 @@ GITHUB_TOKEN="$1"
 PROJECT_USERNAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
 PROJECT_REPONAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
 
-zig build
-
-./zig-out/bin/ghr \
+./zig-out/bin/ghr-linux-x86_64 \
     -t "$GITHUB_TOKEN" \
     -u "$PROJECT_USERNAME" \
     -r "$PROJECT_REPONAME" \

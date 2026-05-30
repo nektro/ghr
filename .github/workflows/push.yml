@@ -14,7 +14,7 @@ jobs:
           fetch-depth: 0
       - run: git fetch --all --tags
 
-      - uses: mlugg/setup-zig@v1
+      - uses: mlugg/setup-zig@v2
         with:
           mirror: "http://mirrors.nektro.net/s3cgi"
           version: 0.14.1

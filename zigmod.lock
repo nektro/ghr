@@ -3,7 +3,7 @@ git https://github.com/nektro/zig-extras commit-0cf756c80a4bc1b0459bc81bf8071891
 git https://github.com/nektro/zig-intrusive-parser commit-a31b480914d15f3d13cdfb586aac950c73beebdd
 git https://github.com/nektro/zig-json commit-754e83d745ec6cf4832b70534d15f869c5df6f5b
 git https://github.com/nektro/zig-nfs commit-c61b820567505899198bb425c2b7c459a1f3cce2
-git https://github.com/nektro/zig-nio commit-c1da2e8a31858880eb3e4cfcf12de0a865617623
+git https://github.com/nektro/zig-nio commit-cc1a96881c7b15d850f9cd4b32019fd66fc8d3b0
 git https://github.com/nektro/zig-sys-darwin commit-c8ef1a85dfb5e1891454650f88d56bfaa0834304
 git https://github.com/nektro/zig-sys-linux commit-f0b155d3627f8c19868be1b2f15d71cda908b575
 git https://github.com/nektro/zig-time commit-0f4db4c980146e4a3fc86a9a9070452a25ff9317

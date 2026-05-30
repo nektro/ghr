@@ -26,10 +26,8 @@ pub fn build(b: *std.Build) void {
     const all_step = b.step("all", "Build for all supported targets");
     all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "x86_64-linux-musl"), .{}).step);
     all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "x86_64-macos"), .{}).step);
-    all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "x86_64-windows-gnu"), .{}).step);
     all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "aarch64-linux-musl"), .{}).step);
     all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "aarch64-macos"), .{}).step);
-    all_step.dependOn(&b.addInstallArtifact(makeExe2(b, true, mode, "aarch64-windows-gnu"), .{}).step);
 }
 
 fn makeExe(b: *std.Build, use_fullname: bool, target: std.Build.ResolvedTarget, mode: std.builtin.Mode) *std.Build.Step.Compile {

@@ -5,9 +5,17 @@ MIT:
 - git https://github.com/nektro/zfetch
 - git https://github.com/nektro/zig-extras
 - git https://github.com/nektro/zig-json
+- git https://github.com/nektro/zig-sys-darwin
+- git https://github.com/nektro/zig-sys-linux
+- git https://github.com/nektro/zig-time
 - git https://github.com/nektro/zig-tracer
 - git https://github.com/truemedian/hzzp
 
 MPL-2.0:
 = https://spdx.org/licenses/MPL-2.0
 - git https://github.com/nektro/zig-intrusive-parser
+- git https://github.com/nektro/zig-nfs
+- git https://github.com/nektro/zig-nio
+
+Unspecified:
+- system_lib c

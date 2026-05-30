@@ -2,6 +2,7 @@ const std = @import("std");
 const string = []const u8;
 const zfetch = @import("zfetch");
 const json = @import("json");
+const nio = @import("nio");
 
 const Config = struct {
     token: string,
@@ -108,7 +109,7 @@ pub fn main() !void {
     try stdout.print("info: creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
     std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.status)) catch std.process.exit(1);
 
-    const doc = try json.parse(alloc, "", req.reader(), .{ .support_trailing_commas = true, .maximum_depth = 100 });
+    const doc = try json.parse(alloc, "", nio.AnyReadable.fromStd(&req.reader()), .{ .support_trailing_commas = true, .maximum_depth = 100 });
     defer doc.deinit(alloc);
     doc.acquire();
     defer doc.release();

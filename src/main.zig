@@ -2,6 +2,7 @@ const std = @import("std");
 const string = []const u8;
 const json = @import("json");
 const nio = @import("nio");
+const nfs = @import("nfs");
 
 const Config = struct {
     token: string,
@@ -106,27 +107,27 @@ pub fn main() !void {
         .draft = config.draft,
         .prerelease = config.prerelease,
     }, .{});
-    var req = try client.open(.POST, try std.Uri.parse(url), .{
-        .server_header_buffer = &buf,
+    var req = try client.request(.POST, try std.Uri.parse(url), .{
         .headers = .{
-            .accept_encoding = .{ .override = "application/vnd.github.v3+json" },
+            .accept_encoding = .{ .override = "identity" },
             .authorization = .{ .override = try std.mem.join(alloc, " ", &.{ "token", config.token }) },
             .content_type = .{ .override = "application/json" },
         },
+        .extra_headers = &.{
+            .{ .name = "Accept", .value = "application/vnd.github.v3+json" },
+        },
     });
     defer req.deinit();
-    req.transfer_encoding = .{ .content_length = body.len };
-    try req.send();
-    try req.writeAll(body);
-    try req.finish();
-    try req.wait();
+    try req.sendBodyComplete(body);
+    var resp = try req.receiveHead(&.{});
 
     std.log.info("creating release: {s} @ {s}:{s}\n", .{ config.title, config.tag, config.commit });
-    std.testing.expectEqual(@as(u16, 201), @intFromEnum(req.response.status)) catch {
-        std.log.err("{s}", .{try req.reader().readAllAlloc(alloc, std.math.maxInt(usize))});
+    std.testing.expectEqual(@as(u16, 201), @intFromEnum(resp.head.status)) catch {
+        std.log.err("{s}", .{try resp.reader(&buf).readAlloc(alloc, std.math.maxInt(usize))});
     };
 
-    const doc = try json.parse(alloc, "", nio.AnyReadable.fromStd(&req.reader()), .{ .support_trailing_commas = true, .maximum_depth = 100 });
+    const content = try resp.reader(&buf).allocRemaining(alloc, .limited(1024 * 1024 * 10));
+    const doc = try json.parseFromSlice(alloc, "", content, .{ .support_trailing_commas = true, .maximum_depth = 100 });
     defer doc.deinit(alloc);
     doc.acquire();
     defer doc.release();
@@ -143,28 +144,28 @@ pub fn main() !void {
 
         if (item.kind != .file) continue;
         std.log.info("--> Uploading: {s}\n", .{item.name});
-        const path = try std.fs.path.join(alloc2, &.{ config.path, item.name });
+        const path = try std.fs.path.joinZ(alloc2, &.{ config.path, item.name });
 
-        const file = try std.fs.cwd().openFile(path, .{});
-        const contents = try file.reader().readAllAlloc(alloc2, std.math.maxInt(usize));
+        const file = try nfs.cwd().openFile(path, .{});
+        const contents = try file.readAllAlloc(alloc2, std.math.maxInt(usize));
 
         const actualupurl = try std.mem.concat(alloc2, u8, &.{ upload_url, "?name=", item.name });
-        var upreq = try client.open(.POST, try std.Uri.parse(actualupurl), .{
-            .server_header_buffer = &buf,
+        var upreq = try client.request(.POST, try std.Uri.parse(actualupurl), .{
             .headers = .{
-                .accept_encoding = .{ .override = "application/vnd.github.v3+json" },
+                .accept_encoding = .{ .override = "identity" },
                 .authorization = .{ .override = try std.mem.join(alloc2, " ", &.{ "token", config.token }) },
                 .content_type = .{ .override = "application/octet-stream" },
             },
+            .extra_headers = &.{
+                .{ .name = "Accept", .value = "application/vnd.github.v3+json" },
+            },
         });
         defer upreq.deinit();
-        upreq.transfer_encoding = .{ .content_length = contents.len };
-        try upreq.send();
-        try upreq.writeAll(contents);
-        try upreq.finish();
-        try upreq.wait();
-        std.testing.expectEqual(@as(u16, 201), @intFromEnum(upreq.response.status)) catch {
-            std.log.debug("{s}", .{try upreq.reader().readAllAlloc(alloc2, std.math.maxInt(usize))});
+        try upreq.sendBodyComplete(contents);
+        var upresp = try upreq.receiveHead(&.{});
+
+        std.testing.expectEqual(@as(u16, 201), @intFromEnum(upresp.head.status)) catch {
+            std.log.debug("{s}", .{try upresp.reader(&buf).readAlloc(alloc2, std.math.maxInt(usize))});
         };
     }
 }

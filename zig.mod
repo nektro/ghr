@@ -6,3 +6,4 @@ min_zig_version: 0.14.1
 root_dependencies:
   - src: git https://github.com/nektro/zig-json
   - src: git https://github.com/nektro/zig-nio
+  - src: git https://github.com/nektro/zig-nfs

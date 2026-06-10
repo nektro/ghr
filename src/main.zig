@@ -17,12 +17,16 @@ const Config = struct {
     prerelease: bool,
 };
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+pub fn main(init: std.process.Init.Minimal) !void {
+    var gpa = std.heap.DebugAllocator(.{}){};
     defer _ = gpa.deinit();
     var arena = std.heap.ArenaAllocator.init(gpa.allocator());
     defer arena.deinit();
     const alloc = arena.allocator();
+
+    var threaded: std.Io.Threaded = .init(gpa.allocator(), .{});
+    defer threaded.deinit();
+    const io = threaded.io();
 
     var config: Config = .{
         .token = "",
@@ -37,11 +41,11 @@ pub fn main() !void {
         .prerelease = false,
     };
 
-    var envmap = try std.process.getEnvMap(alloc);
+    var envmap = try init.environ.createMap(alloc);
     defer envmap.deinit();
     if (envmap.get("GITHUB_TOKEN")) |env| config.token = env;
 
-    var argiter = try std.process.argsWithAllocator(alloc);
+    var argiter = init.args.iterate();
     defer argiter.deinit();
     var argi: usize = 0;
     while (argiter.next()) |item| : (argi += 1) {
@@ -70,12 +74,12 @@ pub fn main() !void {
 
     if (config.user.len == 0) {
         std.log.warn("user (-u) is empty! reading $GITHUB_REPOSITORY instead", .{});
-        config.user = std.posix.getenv("GITHUB_REPOSITORY_OWNER") orelse @panic("$GITHUB_REPOSITORY_OWNER not set");
+        config.user = envmap.get("GITHUB_REPOSITORY_OWNER") orelse @panic("$GITHUB_REPOSITORY_OWNER not set");
     }
 
     if (config.repo.len == 0) {
         std.log.warn("repo (-r) is empty! reading $GITHUB_REPOSITORY instead", .{});
-        config.repo = std.posix.getenv("GITHUB_REPOSITORY") orelse @panic("$GITHUB_REPOSITORY not set");
+        config.repo = envmap.get("GITHUB_REPOSITORY") orelse @panic("$GITHUB_REPOSITORY not set");
         config.repo = config.repo[std.mem.indexOfScalar(u8, config.repo, '/').? + 1 ..];
     }
 
@@ -92,10 +96,10 @@ pub fn main() !void {
     }
 
     if (config.title.len == 0) config.title = config.tag;
-    if (config.commit.len == 0) config.commit = std.posix.getenv("GITHUB_SHA") orelse @panic("-c option not set and $GITHUB_SHA empty!");
+    if (config.commit.len == 0) config.commit = envmap.get("GITHUB_SHA") orelse @panic("-c option not set and $GITHUB_SHA empty!");
 
     var buf: [4096]u8 = @splat(0);
-    var client: std.http.Client = .{ .allocator = alloc };
+    var client: std.http.Client = .{ .allocator = alloc, .io = io };
     defer client.deinit();
 
     const url = try nio.fmt.allocPrint(alloc, "https://api.github.com/repos/{s}/{s}/releases", .{ config.user, config.repo });
@@ -135,14 +139,14 @@ pub fn main() !void {
     var upload_url = doc.root.object().getS("upload_url").?;
     upload_url = upload_url[0..std.mem.indexOfScalar(u8, upload_url, '{').?];
 
-    const dir = try std.fs.cwd().openDir(config.path, .{ .iterate = true });
+    const dir = try nfs.cwd().openDirC(config.path, .{});
     var iter = dir.iterate();
     while (try iter.next()) |item| {
         var arena2 = std.heap.ArenaAllocator.init(alloc);
         defer arena2.deinit();
         const alloc2 = arena2.allocator();
 
-        if (item.kind != .file) continue;
+        if (item.type != .REG) continue;
         std.log.info("--> Uploading: {s}\n", .{item.name});
         const path = try std.fs.path.joinZ(alloc2, &.{ config.path, item.name });
 

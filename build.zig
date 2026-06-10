@@ -45,7 +45,7 @@ fn makeExe(b: *std.Build, use_fullname: bool, target: std.Build.ResolvedTarget, 
         }),
     });
     deps.addAllTo(exe);
-    exe.linkLibC();
+    exe.root_module.link_libc = true;
     return exe;
 }
 
